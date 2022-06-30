@@ -167,7 +167,7 @@ static void Show_Error (const char *str, const size_t symb_i)
 {
     printf ("%s\n", str);
     
-    for (int i = 0; i < symb_i; i++)
+    for (size_t i = 0; i < symb_i; i++)
         printf (" ");
 
     printf ("^~~~~~~~~~ Incorrect symbol\n");
