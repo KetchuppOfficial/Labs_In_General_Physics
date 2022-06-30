@@ -4,7 +4,6 @@
 // ========================================== STATIC PROTOTYPES ========================================== //
 
 static struct Node **Forest_Ctor   (const int n_vars);
-static int Forest_Dtor (struct Node **forest, const int n_vars);
 static int Diff_One_Var (const struct Node *node_ptr, const char *var, struct Node *new_node_ptr);
 
 static struct Node *Differentiate_Inside (struct Node *what_diff, struct Node *parent, const char *var);
@@ -54,11 +53,11 @@ static int Print_Pow_Operand  (const struct Node *node_ptr, FILE *tex_file);
 
 // ========================================== GENERAL FUNCTIONS ========================================== //
 
-struct Node **Differentiator (const struct Node *root, struct Var *vars_arr, const int n_vars)
+struct Node **Differentiator (const struct Node *root, const struct Var *vars_arr, const int n_vars)
 {
-    MY_ASSERT (root,       "struct Node *root",    NULL_PTR, NULL);
-    MY_ASSERT (vars_arr,   "struct Var *vars_arr", NULL_PTR, NULL);
-    MY_ASSERT (n_vars > 0, "const int n_vars",     POS_VAL,  NULL);
+    MY_ASSERT (root,       "const struct Node *root",    NULL_PTR, NULL);
+    MY_ASSERT (vars_arr,   "const struct Var *vars_arr", NULL_PTR, NULL);
+    MY_ASSERT (n_vars > 0, "const int n_vars",           POS_VAL,  NULL);
 
     struct Node *root_copy = Copy_Tree (root, NULL);
     MY_ASSERT (root_copy, "Copy_Tree ()", FUNC_ERROR, NULL);
@@ -110,7 +109,7 @@ struct Node **Forest_Ctor (const int n_vars)
     return forest;
 }
 
-static int Forest_Dtor (struct Node **forest, const int n_vars)
+int Forest_Dtor (struct Node **forest, const int n_vars)
 {
     MY_ASSERT (forest,     "struct Node **forest", NULL_PTR, ERROR);
     MY_ASSERT (n_vars > 0, "const int n_vars",     POS_VAL,  ERROR);
