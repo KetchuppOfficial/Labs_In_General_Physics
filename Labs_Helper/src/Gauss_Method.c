@@ -13,7 +13,6 @@ static int Compare_Double (const double first, const double second);
 static inline void Mult_Row           (double *matrix, const size_t n_rows, const size_t row_i,    const double mult);
 static inline void Mult_Then_Add_Rows (double *matrix, const size_t n_rows, const size_t receiver, const size_t source, const double mult);
 static inline void Swap_Rows          (double *matrix, const size_t n_rows, const size_t row_1,    const size_t row_2);
-static inline void Matrix_Dump        (double *matrix, const size_t n_rows);
 
 int SLE_solver (double *matrix, const size_t n_rows, double *solution)
 {    
@@ -61,7 +60,7 @@ static void Direct_Passing (double *matrix, const size_t n_rows)
 static int Check_Degeneration (const double *matrix, const size_t n_rows)
 {
     double check_product = *matrix;
-    for (int i = 1; i < n_rows; i++)
+    for (size_t i = 1; i < n_rows; i++)
         check_product *= matrix[i * (n_rows + 1) + i];
 
     if (Compare_Double (check_product, 0.0) == 0)
