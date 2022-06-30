@@ -7,8 +7,9 @@ BIN      = ./bin/
 SRCDIR   = ./src/
 BUILDDIR = ./build/
 
-SRC_LIST = main.c Lexer.c Parser.c Differentiator.c Stack.c	Graphic_Dump.c \
-           Print_Graph.c Data_Analysis.c Gauss_Metod.c
+SRC_LIST = main.c Lexer.c Parser.c Differentiator.c Stack.c	Graphic_Dump.c	\
+           Print_Graph.c Data_Analysis.c Gauss_Method.c 					\
+           Description_Interpreter.c
 
 SRC = $(addprefix $(SRCDIR), $(SRC_LIST))
 
@@ -37,7 +38,7 @@ $(BUILDDIR)%.o: $(SRCDIR)%.c
 	@echo "Compiling \"$<\"..."
 	@$(CC) $(CFLAGS) -g $(OPT) -c -I$(LIBSDIR) $< -o $@
 
-#include $(DEPS)
+include $(DEPS)
 
 $(BUILDDIR)%.d: $(SRCDIR)%.c
 	@echo "Collecting dependencies for \"$<\"..."
