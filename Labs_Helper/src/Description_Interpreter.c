@@ -104,7 +104,10 @@ static int  Handle_FP_Num   (struct Graph *graph, const struct D_Token *token_ar
 static int  Handle_String   (struct Graph *graph, const struct D_Token *token_arr, const int token_i, const char *buffer, const long n_symbs);
 static int  Check_Graph     (struct Graph *graph, const struct Values *values);
 static void Set_Defaults    (struct Graph *graph);
-static void Parser_Dump     (const struct D_Token *token_arr, const int n_tokens);
+
+#ifdef PARSER_DUMP
+static void Parser_Dump (const struct D_Token *token_arr, const int n_tokens);
+#endif
 
 struct Graph *Description_Interpreter (const char *file_name)
 {
@@ -417,9 +420,9 @@ static int Get_Number (struct D_Token *token_arr, const int token_i, const char 
     return NO_ERRORS;
 }
 
-// ================================================================== //
+// ================================================================================================================================== //
 
-// ============================= PARSER ============================= //
+// ============================================================= PARSER ============================================================= //
 
 static int D_Parser (const struct D_Token *token_arr, const int n_tokens, const char *buffer, const long n_symbs, struct Graph *graph)
 {
@@ -496,7 +499,7 @@ static int D_Parser (const struct D_Token *token_arr, const int n_tokens, const 
         }
     }
 
-    #if 0
+    #ifdef PARSER_DUMP
     Parser_Dump (token_arr, n_tokens);
     #endif
 
@@ -785,6 +788,7 @@ static void Set_Defaults (struct Graph *graph)
     }
 }
 
+#ifdef PARSER_DUMP
 static void Parser_Dump (const struct D_Token *token_arr, const int n_tokens)
 {
     for (int token_i = 0; token_i < n_tokens; token_i++)
@@ -868,3 +872,6 @@ static void Parser_Dump (const struct D_Token *token_arr, const int n_tokens)
         }
     }
 }
+#endif
+
+// ================================================================================================================================== //
