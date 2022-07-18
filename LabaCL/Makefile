@@ -7,9 +7,9 @@ BIN      = ./bin/
 SRCDIR   = ./src/
 BUILDDIR = ./build/
 
-SRC_LIST = main.c Lexer.c Parser.c Differentiator.c Stack.c	Graphic_Dump.c	\
+SRC_LIST = main.c Expression_Tree.c Differentiator.c Stack.c Graphic_Dump.c	\
            Print_Graph.c Data_Analysis.c Gauss_Method.c 					\
-           Description_Interpreter.c
+           Graph_Compiler.c User_Interface.c
 
 SRC = $(addprefix $(SRCDIR), $(SRC_LIST))
 
@@ -53,7 +53,4 @@ clean:
 
 run: $(BIN)$(PROJECT).out
 	@echo "Running \"$<\"..."
-	@$(BIN)$(PROJECT).out $(IN)
-
-graph:
-	python3 Graph.py
+	@$(BIN)$(PROJECT).out

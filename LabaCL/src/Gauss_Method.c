@@ -1,7 +1,6 @@
-#include "../include/Labs.h"
+#include "../include/LabaCL.h"
 #include "My_Lib.h"
 
-const int DEGENERATE = INT_MAX;
 const double EPSILON = 1E-6;
 
 static void Direct_Passing     (double *matrix, const size_t n_rows);
@@ -10,9 +9,9 @@ static void Reverse_Passing    (double *matrix, const size_t n_rows);
 
 static int Compare_Double (const double first, const double second);
 
-static inline void Mult_Row           (double *matrix, const size_t n_rows, const size_t row_i,    const double mult);
+static inline void Mult_Row           (double *matrix, const size_t n_rows, const size_t row_i, const double mult);
 static inline void Mult_Then_Add_Rows (double *matrix, const size_t n_rows, const size_t receiver, const size_t source, const double mult);
-static inline void Swap_Rows          (double *matrix, const size_t n_rows, const size_t row_1,    const size_t row_2);
+static void        Swap_Rows          (double *matrix, const size_t n_rows, const size_t row_1, const size_t row_2);
 
 int SLE_solver (double *matrix, const size_t n_rows, double *solution)
 {    
@@ -21,7 +20,7 @@ int SLE_solver (double *matrix, const size_t n_rows, double *solution)
     
     Direct_Passing (matrix, n_rows);
 
-    if (Check_Degeneration (matrix, n_rows) == DEGENERATE)
+    if (Check_Degeneration (matrix, n_rows) != 0)
         return ERROR;
 
     Reverse_Passing (matrix, n_rows);
@@ -64,7 +63,7 @@ static int Check_Degeneration (const double *matrix, const size_t n_rows)
         check_product *= matrix[i * (n_rows + 1) + i];
 
     if (Compare_Double (check_product, 0.0) == 0)
-        return DEGENERATE;
+        return 1;
     else
         return 0;
 }
@@ -103,7 +102,7 @@ static inline void Mult_Then_Add_Rows (double *matrix, const size_t n_rows, cons
         matrix[receiver * (n_rows + 1) + j] += matrix[source * (n_rows + 1) + j] * mult;
 }
 
-static inline void Swap_Rows (double *matrix, const size_t n_rows, const size_t row_1, const size_t row_2)
+static void Swap_Rows (double *matrix, const size_t n_rows, const size_t row_1, const size_t row_2)
 {    
     double *temp_row = (double *)calloc (n_rows + 1, sizeof (double));
 
@@ -117,6 +116,7 @@ static inline void Swap_Rows (double *matrix, const size_t n_rows, const size_t 
     free (temp_row);
 }
 
+#ifdef MATRIX_DUMP
 void Matrix_Dump (double *matrix, const size_t n_rows)
 {
     for (size_t i = 0; i < n_rows; i++)
@@ -129,3 +129,4 @@ void Matrix_Dump (double *matrix, const size_t n_rows)
         printf ("| %.3f )\n", matrix[i * (n_rows + 1) + n_rows]);
     }
 }
+#endif // MATRIX_DUMP

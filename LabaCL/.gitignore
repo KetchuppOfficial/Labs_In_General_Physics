@@ -8,5 +8,9 @@
 
 # Not for release
 # ~~~~~~~~~~~~~~~
-src/Desctiption_Interpreter.c
+graph_dump/
+test/
+Graph.py
+*.png
+Error.lab
 # ~~~~~~~~~~~~~~~

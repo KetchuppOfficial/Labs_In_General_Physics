@@ -1,27 +1,29 @@
 #include "My_Lib.h"
-#include "../include/Labs.h"
+#include "../include/LabaCL.h"
 
 enum Token_Enum
 {
     GRAPH_TITLE,
-    FUNCTION,
 
     DOT_LABEL,
-    DOT_COLOUR,     // Optional. Green by default
+    DOT_COLOUR,     // Optional. "Blue" by default
 
     NO_LINE,        // Optional. If it is used, no line will be printed
-    LINE_COLOUR,    // Optional. Red by default
+    LINE_COLOUR,    // Optional. "Green" by default
 
+    #ifdef POLINOMICAL_APPROX
     APPROX_POW,     // Have to be 2 more than number of dots
+    #endif // POLINOMICAL_APPROX
 
     X_ASIX_DATA,
     X_ERR,
-    X_ACCURACY,
     X_TITLE,
 
     Y_ASIX_DATA,
-    Y_ACCURACY,
+    Y_ERR,
     Y_TITLE,
+
+    ERR_COLOUR,     // Optional. "Red" by default
 
     IMG_NAME,
 
@@ -39,7 +41,6 @@ struct Label
 struct Label Labels_Arr[] = 
 {
     {GRAPH_TITLE, "Graph_Title"},
-    {FUNCTION,    "Function"},
 
     {DOT_LABEL,   "Dot_Label"},
     {DOT_COLOUR,  "Dot_Colour"},
@@ -47,16 +48,19 @@ struct Label Labels_Arr[] =
     {NO_LINE,     "No_Line"},
     {LINE_COLOUR, "Line_Colour"},
 
+    #ifdef POLINOMICAL_APPROX
     {APPROX_POW,  "Approximation_Power"},
+    #endif // POLINOMICAL_APPROX
 
     {X_ASIX_DATA, "X_Asix_Data"},
     {X_ERR,       "X_Error"},
-    {X_ACCURACY,  "X_Accuracy"},
     {X_TITLE,     "X_Title"},
 
     {Y_ASIX_DATA, "Y_Asix_Data"},
-    {Y_ACCURACY,  "Y_Accuracy"},
+    {Y_ERR,       "Y_Error"},
     {Y_TITLE,     "Y_Title"},
+
+    {ERR_COLOUR,  "Error_Colour"},
 
     {IMG_NAME,    "Image_Name"}
 };
@@ -82,6 +86,7 @@ struct Values
     int x;
     int y;
     int x_err;
+    int y_err;
 };
 
 static struct Graph   *Graph_Ctor     (void);
@@ -99,23 +104,22 @@ static int             Get_Number     (struct D_Token *token_arr, const int toke
 
 static int  D_Parser        (const struct D_Token *token_arr, const int n_tokens, const char *buffer, const long n_symbs, struct Graph *graph);
 static int  One_Label_Check (const struct D_Token *token_arr, const int token_i, const char *buffer, const long n_symbs);
+#ifdef POLINOMICAL_APPROX
 static int  Handle_Int_Num  (struct Graph *graph, const struct D_Token *token_arr, const int token_i, const char *buffer, const long n_symbs);
+#endif // POLINOMICAL_APPROX
 static int  Handle_FP_Num   (struct Graph *graph, const struct D_Token *token_arr, const int token_i, const char *buffer, const long n_symbs, struct Values *values);
 static int  Handle_String   (struct Graph *graph, const struct D_Token *token_arr, const int token_i, const char *buffer, const long n_symbs);
 static int  Check_Graph     (struct Graph *graph, const struct Values *values);
 static void Set_Defaults    (struct Graph *graph);
 
-#ifdef PARSER_DUMP
-static void Parser_Dump (const struct D_Token *token_arr, const int n_tokens);
-#endif
+#ifdef DI_PARSER_DUMP
+static int Parser_Dump (const struct D_Token *token_arr, const int n_tokens);
+#endif // DI_PARSER_DUMP
 
-struct Graph *Description_Interpreter (const char *file_name)
+struct Graph *Graph_Compiler (char *buffer, const long n_symbs)
 {
-    MY_ASSERT (file_name, "const char *file_name", NULL_PTR, NULL);
-
-    long n_symbs = 0L;
-    char *buffer = Make_File_Buffer (file_name, &n_symbs);
-    MY_ASSERT (buffer, "Make_File_Buffer ()", FUNC_ERROR, NULL);
+    MY_ASSERT (buffer,      "const char *file_name", NULL_PTR, NULL);
+    MY_ASSERT (n_symbs > 0, "const long n_symbs",    POS_VAL,  NULL);
 
     int DPrep_status = D_Preprocessor (buffer, n_symbs);
     MY_ASSERT (DPrep_status != ERROR, "Preprocessor ()", FUNC_ERROR, NULL);
@@ -129,7 +133,6 @@ struct Graph *Description_Interpreter (const char *file_name)
     int DPar_status = D_Parser (token_arr, n_tokens, buffer, n_symbs, graph);
     MY_ASSERT (DPar_status != ERROR, "Parser ()", FUNC_ERROR, NULL);
 
-    free (buffer);
     Token_Arr_Dtor (token_arr, n_tokens);
 
     return graph;
@@ -140,9 +143,9 @@ static struct Graph *Graph_Ctor (void)
     struct Graph *graph = (struct Graph *)calloc (1, sizeof (struct Graph));
 
     graph->line_type = DEFAULT;
+    #ifdef POLINOMICAL_APPROX
     graph->approx_pow = -1;
-    graph->x_acc = -1;
-    graph->y_acc = -1;
+    #endif // POLINOMICAL_APPROX
 
     return graph;
 }
@@ -150,7 +153,6 @@ static struct Graph *Graph_Ctor (void)
 void Graph_Dtor (struct Graph *graph)
 {
     free (graph->title);
-    free (graph->function);
     free (graph->dot_label);
     free (graph->dot_colour);
     free (graph->line_colour);
@@ -160,6 +162,7 @@ void Graph_Dtor (struct Graph *graph)
     free (graph->y_arr);
     free (graph->y_err);
     free (graph->y_title);
+    free (graph->err_colour);
     free (graph->img_name);
 
     free (graph);
@@ -214,7 +217,7 @@ static void Show_Error (const char *buffer, const long n_symbs, const long err_s
         symb_i--;
     symb_i++;
     
-    int n_lines = 0;
+    int n_lines = 1;
     for (long i = 0; i < symb_i; i++)
     {
         if (buffer[i] == '\n')
@@ -316,7 +319,7 @@ static int Get_Label_Name (struct D_Token *token_arr, const int token_i, const c
             {
                 (*symb_i)++;
                 token_arr[token_i].name = label_i;
-                token_arr[token_i].buff_pos = *symb_i - sizeof (Labels_Arr[label_i].name);
+                token_arr[token_i].buff_pos = *symb_i - label_name_len - 1;
                 return NO_ERRORS;
             }
             else
@@ -451,6 +454,12 @@ static int D_Parser (const struct D_Token *token_arr, const int n_tokens, const 
                 OLC_status = One_Label_Check (token_arr, token_i, buffer, n_symbs);
                 MY_ASSERT (OLC_status != ERROR, "One_Label_Check ()", FUNC_ERROR, ERROR);
                 break;
+
+            case Y_ERR:
+                graph->y_err = (double *)calloc (n_tokens, sizeof (double));
+                OLC_status = One_Label_Check (token_arr, token_i, buffer, n_symbs);
+                MY_ASSERT (OLC_status != ERROR, "One_Label_Check ()", FUNC_ERROR, ERROR);
+                break;
             
             case NO_LINE:
                 graph->line_type = DOTS;
@@ -459,26 +468,30 @@ static int D_Parser (const struct D_Token *token_arr, const int n_tokens, const 
                 break;
 
             case GRAPH_TITLE:
-            case FUNCTION:
             case DOT_LABEL:
             case DOT_COLOUR:
             case LINE_COLOUR:
+            case ERR_COLOUR:
+
+            #ifdef POLINOMICAL_APPROX
             case APPROX_POW:
-            case X_ACCURACY:
+            #endif // POLINOMICAL_APPROX
+
             case X_TITLE:
-            case Y_ACCURACY:
             case Y_TITLE:
             case IMG_NAME:
                 OLC_status = One_Label_Check (token_arr, token_i, buffer, n_symbs);
                 MY_ASSERT (OLC_status != ERROR, "One_Label_Check ()", FUNC_ERROR, ERROR);
                 break;
 
+            #ifdef POLINOMICAL_APPROX
             case INT_NUM:
             {
                 int HIN_status = Handle_Int_Num (graph, token_arr, token_i, buffer, n_symbs);
                 MY_ASSERT (HIN_status != ERROR, "Handle_Int_Num ()", FUNC_ERROR, ERROR);
                 break;
-            } 
+            }
+            #endif // POLINOMICAL_APPROX
 
             case FP_NUM:
             {
@@ -498,10 +511,6 @@ static int D_Parser (const struct D_Token *token_arr, const int n_tokens, const 
                 MY_ASSERT (false, "token_arr[token_i].name", UNEXP_VAL, ERROR);
         }
     }
-
-    #ifdef PARSER_DUMP
-    Parser_Dump (token_arr, n_tokens);
-    #endif
 
     int CG_status = Check_Graph (graph, &values);
     MY_ASSERT (CG_status != ERROR, "Check_Graph ()", FUNC_ERROR, ERROR);
@@ -530,6 +539,7 @@ static int One_Label_Check (const struct D_Token *token_arr, const int token_i, 
     return NO_ERRORS;
 }
 
+#ifdef POLINOMICAL_APPROX
 static int Handle_Int_Num (struct Graph *graph, const struct D_Token *token_arr, const int token_i, const char *buffer, const long n_symbs)
 {
     if (token_i > 0)
@@ -539,15 +549,9 @@ static int Handle_Int_Num (struct Graph *graph, const struct D_Token *token_arr,
             case APPROX_POW:
                 graph->approx_pow = token_arr[token_i].val.int_num;
                 break;
-            case X_ACCURACY:
-                graph->x_acc = token_arr[token_i].val.int_num;
-                break;
-            case Y_ACCURACY:
-                graph->y_acc = token_arr[token_i].val.int_num;
-                break;
 
             default:
-                Show_Error (buffer, n_symbs, token_arr[token_i].buff_pos, "Previous token should be \"X_Accurace\" or \"Y_Accuracy\" or an integer number");
+                Show_Error (buffer, n_symbs, token_arr[token_i].buff_pos, "Previous token should be \"Approx_Pow\", \"X_Accurace\" or \"Y_Accuracy\"");
                 return ERROR;
         }
     }
@@ -559,6 +563,7 @@ static int Handle_Int_Num (struct Graph *graph, const struct D_Token *token_arr,
 
     return NO_ERRORS;
 }
+#endif // POLINOMICAL_APPROX
 
 static int Handle_FP_Num (struct Graph *graph, const struct D_Token *token_arr, const int token_i, const char *buffer, const long n_symbs, struct Values *values)
 {
@@ -575,27 +580,37 @@ static int Handle_FP_Num (struct Graph *graph, const struct D_Token *token_arr, 
             case Y_ASIX_DATA:
                 graph->y_arr[values->y++] = token_arr[token_i].val.fp_num;
                 break;
-            case FP_NUM:
-                for (int i = token_i - 2; token_arr[i].name == FP_NUM; i--)
-                {
-                    switch (token_arr[i].name)
-                    {
-                        case X_ASIX_DATA:
-                            graph->x_arr[values->x++] = token_arr[i].val.fp_num;
-                            break;
-                        case X_ERR:
-                            graph->x_err[values->x_err++] = token_arr[i].val.fp_num;
-                            break;
-                        case Y_ASIX_DATA:
-                            graph->y_arr[values->y++] = token_arr[i].val.fp_num;
-                            break;
-                        case FP_NUM:
-                        default:
-                            break;
-                    }
-                }
+            case Y_ERR:
+                graph->y_err[values->y_err++] = token_arr[token_i].val.fp_num;
                 break;
+            case FP_NUM:
+            {
+                int i = token_i - 2;
 
+                while (token_arr[i].name == FP_NUM)
+                    i--;  
+
+                switch (token_arr[i].name)
+                {
+                    case X_ASIX_DATA:
+                        graph->x_arr[values->x++] = token_arr[token_i].val.fp_num;
+                        break;
+                    case X_ERR:
+                        graph->x_err[values->x_err++] = token_arr[token_i].val.fp_num;
+                        break;
+                    case Y_ASIX_DATA:
+                        graph->y_arr[values->y++] = token_arr[token_i].val.fp_num;
+                        break;
+                    case Y_ERR:
+                        graph->y_err[values->y_err++] = token_arr[token_i].val.fp_num;
+                        break;
+                    default:
+                        Show_Error (buffer, n_symbs, token_arr[i].buff_pos, "This token cannot have floating point number as argument");
+                }
+
+                break;
+            }
+                    
             default:
                 Show_Error (buffer, n_symbs, token_arr[token_i].buff_pos, "Previous token should be \"X_Asix_Data\" or \"Y_Asix_Data\" or a floating point num");
                 return ERROR;
@@ -622,10 +637,6 @@ static int Handle_String (struct Graph *graph, const struct D_Token *token_arr, 
                 graph->title = (char *)calloc (str_len + 1, sizeof (char));
                 memcpy (graph->title, token_arr[token_i].val.str, str_len);
                 break;
-            case FUNCTION:
-                graph->function = (char *)calloc (str_len + 1, sizeof (char));
-                memcpy (graph->function, token_arr[token_i].val.str, str_len);
-                break;
             case DOT_LABEL:
                 graph->dot_label = (char *)calloc (str_len + 1, sizeof (char));
                 memcpy (graph->dot_label, token_arr[token_i].val.str, str_len);
@@ -640,11 +651,15 @@ static int Handle_String (struct Graph *graph, const struct D_Token *token_arr, 
                 break;
             case X_TITLE:
                 graph->x_title = (char *)calloc (str_len + 1, sizeof (char));
-                memcpy (graph->line_colour, token_arr[token_i].val.str, str_len);
+                memcpy (graph->x_title, token_arr[token_i].val.str, str_len);
                 break;
             case Y_TITLE:
                 graph->y_title = (char *)calloc (str_len + 1, sizeof (char));
-                memcpy (graph->line_colour, token_arr[token_i].val.str, str_len);
+                memcpy (graph->y_title, token_arr[token_i].val.str, str_len);
+                break;
+            case ERR_COLOUR:
+                graph->err_colour = (char *)calloc (str_len + 1, sizeof (char));
+                memcpy (graph->err_colour, token_arr[token_i].val.str, str_len);
                 break;
             case IMG_NAME:
                 graph->img_name = (char *)calloc (str_len + 1, sizeof (char));
@@ -669,99 +684,93 @@ static int Check_Graph (struct Graph *graph, const struct Values *values)
 {      
     if (graph->title == NULL)
     {
-        printf ("************ ERROR REPORT ************\n");
-        printf ("\"Graph_Title\" label is forgotten\n");
-        printf ("**************************************\n");
-        return ERROR;
-    }
-    else if (graph->function == NULL)
-    {
-        printf ("************ ERROR REPORT ************\n");
-        printf ("\"Function\" label is forgotten\n");
-        printf ("**************************************\n");
+        printf ("************ ERROR REPORT ************\n"
+                "\"Graph_Title\" label is forgotten\n"
+                "**************************************\n");
         return ERROR;
     }
     else if (graph->dot_label == NULL)
     {
-        printf ("************ ERROR REPORT ************\n");
-        printf ("\"Dot_Label\" label is forgotten\n");
-        printf ("**************************************\n");
+        printf ("************ ERROR REPORT ************\n"
+                "\"Dot_Label\" label is forgotten\n"
+                "**************************************\n");
         return ERROR;
     }
+
+    #ifdef POLINOMICAL_APPROX
     else if (graph->approx_pow == -1)
     {
-        printf ("************ ERROR REPORT ************\n");
-        printf ("\"Approximation_Power\" label is forgotten\n");
-        printf ("**************************************\n");
+        printf ("************ ERROR REPORT ************\n"
+                "\"Approximation_Power\" label is forgotten\n"
+                "**************************************\n");
         return ERROR;
     }
+    #endif // POLINOMICAL_APPROX
+
     else if (graph->x_arr == NULL)
     {
-        printf ("************ ERROR REPORT ************\n");
-        printf ("\"X_Asix_Data\" label is forgotten\n");
-        printf ("**************************************\n");
+        printf ("************ ERROR REPORT ************\n"
+                "\"X_Asix_Data\" label is forgotten\n"
+                "**************************************\n");
         return ERROR;
     }
     else if (graph->x_err == NULL)
     {
-        printf ("************ ERROR REPORT ************\n");
-        printf ("\"X_Error\" label is forgotten\n");
-        printf ("**************************************\n");
-        return ERROR;
-    }
-    else if (graph->x_acc == -1)
-    {
-        printf ("************ ERROR REPORT ************\n");
-        printf ("\"X_Accuracy\" label is forgotten\n");
-        printf ("**************************************\n");
+        printf ("************ ERROR REPORT ************\n"
+                "\"X_Error\" label is forgotten\n"
+                "**************************************\n");
         return ERROR;
     }
     else if (graph->x_title == NULL)
     {
-        printf ("************ ERROR REPORT ************\n");
-        printf ("\"X_Title\" label is forgotten\n");
-        printf ("**************************************\n");
+        printf ("************ ERROR REPORT ************\n"
+                "\"X_Title\" label is forgotten\n"
+                "**************************************\n");
         return ERROR;
     }
     else if (graph->y_arr == NULL)
     {
-        printf ("************ ERROR REPORT ************\n");
-        printf ("\"Y_Asix_Data\" label is forgotten\n");
-        printf ("**************************************\n");
+        printf ("************ ERROR REPORT ************\n"
+                "\"Y_Asix_Data\" label is forgotten\n"
+                "**************************************\n");
         return ERROR;
     }
-    else if (graph->y_acc == -1)
+    else if (graph->y_err == NULL)
     {
-        printf ("************ ERROR REPORT ************\n");
-        printf ("\"Y_Accuracy\" label is forgotten\n");
-        printf ("**************************************\n");
+        printf ("************ ERROR REPORT ************\n"
+                "\"Y_Error\" label is forgotten\n"
+                "**************************************\n");
         return ERROR;
     }
     else if (graph->y_title == NULL)
     {
-        printf ("************ ERROR REPORT ************\n");
-        printf ("\"Y_Title\" label is forgotten\n");
-        printf ("**************************************\n");
+        printf ("************ ERROR REPORT ************\n"
+                "\"Y_Title\" label is forgotten\n"
+                "**************************************\n");
         return ERROR;
     }
     else if (graph->img_name == NULL)
     {
-        printf ("************ ERROR REPORT ************\n");
-        printf ("\"Image_Name\" label is forgotten\n");
-        printf ("**************************************\n");
+        printf ("************ ERROR REPORT ************\n"
+                "\"Image_Name\" label is forgotten\n"
+                "**************************************\n");
         return ERROR;
     }
+    #ifdef POLINOMICAL_APPROX
     else if (graph->approx_pow + 2 <= graph->n_dots)
     {
-        printf ("************ ERROR REPORT ************\n");
-        printf ("\"Approximation_Power\" has to be 2 more than number of dots or they have to be equal\n");
-        printf ("**************************************\n");
+        printf ("************ ERROR REPORT ************\n"
+                "\"Approximation_Power\" has to be 2 more than number of dots or they have to be equal\n"
+                "**************************************\n");
         return ERROR;
     }
+    #endif // POLINOMICAL_APPROX
 
-    if (values->x != values->y || values->x != values->x_err)
+    if (values->x != values->y || values->x != values->x_err || values->y != values->y_err)
     {       
-        printf ("The number of \"X_Asix_Data\" and \"Y_Asix_Data\" and \"X_Error\" arguments should be equal\n");
+        printf ("******************************************* ERROR REPORT ********************************************\n"
+                "The number of \"X_Asix_Data\", \"Y_Asix_Data\", \"X_Error\" and \"Y_Error\" arguments should be equal\n"
+                "*****************************************************************************************************\n");
         return ERROR;
     }
     else
@@ -774,22 +783,28 @@ static void Set_Defaults (struct Graph *graph)
 {
     if (graph->dot_colour == NULL)
     {
-        graph->img_name = (char *)calloc (sizeof ("green"), sizeof (char));
-        memcpy (graph->img_name, "green", sizeof ("green"));
+        graph->dot_colour = (char *)calloc (sizeof ("blue"), sizeof (char));
+        memcpy (graph->dot_colour, "blue", sizeof ("blue"));
+    }
+
+    if (graph->line_colour == NULL)
+    {
+        graph->line_colour = (char *)calloc (sizeof ("green"), sizeof (char));
+        memcpy (graph->line_colour, "green", sizeof ("green"));
+    }
+
+    if (graph->err_colour == NULL)
+    {
+        graph->err_colour = (char *)calloc (sizeof ("red"), sizeof (char));
+        memcpy (graph->err_colour, "red", sizeof ("red"));
     }
 
     if (graph->line_type == DEFAULT)
         graph->line_type = POLINOMICAL;
-
-    if (graph->line_colour == NULL)
-    {
-        graph->line_colour = (char *)calloc (sizeof ("red"), sizeof (char));
-        memcpy (graph->line_colour, "red", sizeof ("red"));
-    }
 }
 
-#ifdef PARSER_DUMP
-static void Parser_Dump (const struct D_Token *token_arr, const int n_tokens)
+#ifdef DI_PARSER_DUMP
+static int Parser_Dump (const struct D_Token *token_arr, const int n_tokens)
 {
     for (int token_i = 0; token_i < n_tokens; token_i++)
     {
@@ -798,11 +813,7 @@ static void Parser_Dump (const struct D_Token *token_arr, const int n_tokens)
             case GRAPH_TITLE:
                 printf ("GRAPH_TITLE\n");
                 break;
-
-            case FUNCTION:
-                printf ("FUNCTION\n");
-                break;
-
+                
             case DOT_LABEL:
                 printf ("DOT_LABEL\n");
                 break;
@@ -819,9 +830,11 @@ static void Parser_Dump (const struct D_Token *token_arr, const int n_tokens)
                 printf ("LINE_COLOUR\n");
                 break;
 
+            #ifdef POLINOMICAL_APPROX
             case APPROX_POW:
                 printf ("APPROX_POW\n");
                 break;
+            #endif
 
             case X_ASIX_DATA:
                 printf ("X_ASIX_DATA\n");
@@ -829,10 +842,6 @@ static void Parser_Dump (const struct D_Token *token_arr, const int n_tokens)
 
             case X_ERR:
                 printf ("X_ERR\n");
-                break;
-
-            case X_ACCURACY:
-                printf ("X_ACCURACY\n");
                 break;
 
             case X_TITLE:
@@ -843,21 +852,26 @@ static void Parser_Dump (const struct D_Token *token_arr, const int n_tokens)
                 printf ("Y_ASIX_DATA\n");
                 break;
 
-            case Y_ACCURACY:
-                printf ("Y_ACCURACY\n");
+            case Y_ERR:
+                printf ("Y_ERR\n");
                 break;
 
             case Y_TITLE:
                 printf ("Y_TITLE\n");
                 break;
 
+            case ERR_COLOUR:
+                printf ("Error_Colour\n");
+
             case IMG_NAME:
                 printf ("IMG_NAME\n");
                 break;
 
+            #ifdef POLINOMICAL_APPROX
             case INT_NUM:
                 printf ("INT_NUM: %d\n", token_arr[token_i].val.int_num);
                 break;
+            #endif // POLINOMICAL_APPROX
 
             case FP_NUM:
                 printf ("FP_NUM: %f\n", token_arr[token_i].val.fp_num);
@@ -868,10 +882,13 @@ static void Parser_Dump (const struct D_Token *token_arr, const int n_tokens)
                 break;
             
             default:
+                MY_ASSERT (false, "token_arr[token_i].name", UNEXP_VAL, ERROR);
                 break;
         }
     }
+
+    return NO_ERRORS;
 }
-#endif
+#endif // DI_PARSER_DUMP
 
 // ================================================================================================================================== //
