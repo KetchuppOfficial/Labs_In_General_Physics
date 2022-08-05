@@ -21,4 +21,5 @@ src/Gauss_Method.c
 src/Error_Compiler.c
 src/Differentiator.c
 src/Expression_Tree.c
+src/Graphic_Dump.c
 # ~~~~~~~~~~~~~~~
