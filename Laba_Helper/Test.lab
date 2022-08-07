@@ -8,7 +8,7 @@ Graph_Title:
 Dot_Label:
     "Экспериментальные точки"
 
-X_Asix_Data:
+X_Data:
     78.0
     88.0
     97.0
@@ -32,7 +32,7 @@ X_Error:
 X_Title: 
     "$\Delta P$, Па"
 
-Y_Asix_Data:
+Y_Data:
     0.0500
     0.0550
     0.0625
@@ -54,4 +54,4 @@ Y_Title:
     "Q, л/с"
 
 Image_Name: 
-    "./Graph.png"
+    "./test_graph.png"

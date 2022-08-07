@@ -1,13 +1,41 @@
-#include "../include/LabaCL.h"
-#include "My_Lib.h"
+#include <stdlib.h>
+#include <math.h>
+#include <assert.h>
 
-static inline void Print_Arr     (FILE *file_ptr, const char *name, const double *arr, const size_t n_dots);
-static void        Print_Formula (FILE *file, const struct Chi_Sq *chi);
-static void        Print_Line    (FILE *file, struct Graph *graph);
+#include "Graph.h"
+#include "Data_Analysis.h"
+#include "Tools.h"
 
-int Print_Graph (struct Graph *graph)
+static inline void Print_Arr (FILE *file, const char *name, const double *arr, const int n_dots);
+static void Print_Formula (FILE *file, const double k_coeff, const double b_coeff);
+static void Print_Line (FILE *file, const char *line_colour, const double *x_data, const double *x_err,
+                        const double *y_data, const double *y_err, const int n_dots);
+
+int Print_Graph (const struct Graph *graph)
 { 
-    FILE *file = Open_File ("Graph.py", "wb");
+    assert (graph);
+
+    const char   *title       = Graph_Title       (graph);
+    const char   *img_name    = Graph_Image_Name  (graph);
+    const char   *dot_label   = Graph_Dot_Label   (graph);
+    const char   *dot_colour  = Graph_Dot_Colour  (graph);
+    const char   *line_colour = Graph_Line_Colour (graph);
+    const int     line_type   = Graph_Line_Type   (graph);
+    const char   *err_colour  = Graph_Err_Colour  (graph);
+    const double *x_data      = Graph_X_Data      (graph);
+    const double *x_err       = Graph_X_Err       (graph);
+    const char   *x_title     = Graph_X_Title     (graph);
+    const double *y_data      = Graph_Y_Data      (graph);
+    const double *y_err       = Graph_Y_Err       (graph);
+    const char   *y_title     = Graph_Y_Title     (graph);
+    const int     n_dots      = Graph_N_Dots      (graph);
+    
+    FILE *file = fopen ("graph.py", "wb");
+    if (file == NULL)
+    {
+        printf ("Opening \"graph.py\" failed\n");
+        return error;
+    }
 
     fprintf (file, "# ------------------------------------------------------ #\n"
                    "# Do not change this file. It was produced automatically #\n"
@@ -19,30 +47,30 @@ int Print_Graph (struct Graph *graph)
                 
     fprintf (file, "plt.figure (figsize = (10, 5.625), dpi = 80)\n\n"
 
-                   "plt.title (\'%s\', fontsize = 16)\n\n", graph->title);
+                   "plt.title (\'%s\', fontsize = 16)\n\n", title);
 
-    Print_Arr (file, "x", graph->x_arr, graph->n_dots);
-    Print_Arr (file, "y", graph->y_arr, graph->n_dots);
+    Print_Arr (file, "x", x_data, n_dots);
+    Print_Arr (file, "y", y_data, n_dots);
     fprintf   (file, "\n");
 
-    Print_Arr (file, "x_err", graph->x_err, graph->n_dots);
-    Print_Arr (file, "y_err", graph->y_err, graph->n_dots);
+    Print_Arr (file, "x_err", x_err, n_dots);
+    Print_Arr (file, "y_err", y_err, n_dots);
     fprintf   (file, "\n");
 
     fprintf (file, "plt.errorbar (x, y, xerr = x_err, yerr = y_err, color = \'%s\', ls = \'none\')\n\n",
-                    graph->err_colour);
+                    err_colour);
 
     fprintf (file, "plt.scatter (x, y, s = 15, label = \'%s\', color = \'%s\')\n\n", 
-                    graph->dot_label, graph->dot_colour);
+                    dot_label, dot_colour);
 
-    if (graph->line_type == POLINOMICAL)
-        Print_Line (file, graph);
+    if (line_type == POLINOMICAL)
+        Print_Line (file, line_colour, x_data, x_err, y_data, y_err, n_dots);
 
     fprintf (file,  "plt.xlabel (\'%s\', fontsize = 16)\n"
-                    "plt.xticks (fontsize = 16, ha = 'center', va = 'top')\n\n", graph->x_title);
+                    "plt.xticks (fontsize = 16, ha = 'center', va = 'top')\n\n", x_title);
 
     fprintf (file,  "plt.ylabel (\'%s\', fontsize = 16)\n"
-                    "plt.yticks (fontsize = 16, rotation = 30, ha = 'right', va = 'top')\n\n", graph->y_title);
+                    "plt.yticks (fontsize = 16, rotation = 30, ha = 'right', va = 'top')\n\n", y_title);
 
     fprintf (file,  "plt.grid (color     = \'black\',\n"                                      
                     "          linewidth = 0.45,\n"    
@@ -57,62 +85,68 @@ int Print_Graph (struct Graph *graph)
 
                     "plt.legend (loc = \'best\')\n");
                    
-    fprintf (file, "plt.savefig (\'%s\')\n", graph->img_name);
+    fprintf (file, "plt.savefig (\'%s\')\n", img_name);
 
-    Close_File (file, "Graph.py");
+    fclose (file);
 
     system ("echo Printing graph...");
-    system ("python3 Graph.py");
+    system ("python3 graph.py");
 
-    return 0;
+    return success;
 }
 
-static inline void Print_Arr (FILE *file, const char *name, const double *arr, const size_t n_dots)
+static inline void Print_Arr (FILE *file, const char *name, const double *arr, const int n_dots)
 {
     fprintf (file, "%s = np.array([", name);
 
-    for (size_t dot_i = 0; dot_i < n_dots - 1; dot_i++)
+    for (int dot_i = 0; dot_i < n_dots - 1; dot_i++)
         fprintf (file, "%.6f, ", arr[dot_i]);
 
     fprintf (file, "%.6f])\n", arr[n_dots - 1]);
 }
 
-static void Print_Line (FILE *file, struct Graph *graph)
+void Print_Line (FILE *file, const char *line_colour, const double *x_data, const double *x_err,
+                 const double *y_data, const double *y_err, const int n_dots)
 {
-    struct Chi_Sq *chi = Linear_Chi_Square (graph);
+    assert (file);
+    assert (line_colour);
+    assert (x_data);
+    assert (x_err);
+    assert (y_data);
+    assert (y_err);
+
+    struct Chi_Sq chi = Linear_Chi_Square (x_data, x_err, y_data, y_err, n_dots);
 
     printf ("*********** Chi-square coefficients ***********\n");
     printf ("Approximation line: y = kx + b\n");
     printf ("k = %f +- %f;\n"
-            "b = %f +- %f\n", chi->k, fabs (chi->k_err), chi->b, fabs(chi->b_err));
+            "b = %f +- %f\n", chi.k, fabs (chi.k_err), chi.b, fabs(chi.b_err));
     printf ("***********************************************\n");
 
     fprintf (file, "plt.plot (x, ");
-    Print_Formula (file, chi);
+    Print_Formula (file, chi.k, chi.b);
     
-    fprintf (file, ", linewidth = 1, color = \'%s\', label = \'Аппроксимирующая прямая ", graph->line_colour);
+    fprintf (file, ", linewidth = 1, color = \'%s\', label = \'Аппроксимирующая прямая ", line_colour);
 
     fprintf (file, "y = ");
-    Print_Formula (file, chi);
+    Print_Formula (file, chi.k, chi.b);
 
     fprintf (file, "\')\n");
-
-    free (chi);
 }
 
-static void Print_Formula (FILE *file, const struct Chi_Sq *chi)
+static void Print_Formula (FILE *file, const double k_coeff, const double b_coeff)
 {
-    if (chi->k < 0)
+    if (k_coeff < 0)
         fprintf (file, "-");
 
-    fprintf (file, "%f * x", fabs (chi->k));
+    fprintf (file, "%f * x", fabs (k_coeff));
 
-    if (chi->b < 0)
+    if (b_coeff < 0)
         fprintf (file, " - ");
     else
         fprintf (file, " + ");
 
-    fprintf (file, "%f", fabs (chi->b));
+    fprintf (file, "%f", fabs (b_coeff));
 }
 
 #ifdef POLINOMICAL_APPROX
@@ -258,74 +292,5 @@ static inline void Clear_Stdin (void)
     {
         ;
     }
-}
-#endif
-
-#ifdef GRAPH_DUMP
-int Graph_Dump (const struct Graph *graph)
-{
-    MY_ASSERT (graph, "const struct Graph *graph", NULL_PTR, ERROR);
-    
-    system ("mkdir -p graph_dump");
-    
-    FILE *dump_file = Open_File ("graph_dump/dump.txt", "wb");
-    MY_ASSERT (dump_file, "dump_file", OPEN_ERR, ERROR);
-
-    fprintf (dump_file, "Graph_Title:\n\t%s\n\n", graph->title);
-
-    fprintf (dump_file, "N_Dots:\n\t%d\n\n", graph->n_dots);
-    fprintf (dump_file, "Dot_Label:\n\t%s\n\n", graph->dot_label);
-    fprintf (dump_file, "Dot_Colour:\n\t%s\n\n", graph->dot_colour);
-
-    switch (graph->line_type)
-    {
-        case DEFAULT:
-            fprintf (dump_file, "Line_Type:\n\tDEFAULT\n\n");
-            break;
-        case POLINOMICAL:
-            fprintf (dump_file, "Line_Type:\n\tPOLINOMICAL\n\n");
-            break;
-        case DOTS:
-            fprintf (dump_file, "Line_Type:\n\tDOTS\n\n");
-            break;
-
-        default:
-            MY_ASSERT (false, "graph->line_type", UNEXP_VAL, ERROR);
-    }
-    fprintf (dump_file, "Line_Colour:\n\t%s\n\n", graph->line_colour);
-
-    #ifdef APPROX_POW
-    fprintf (dump_file, "Approximation_Power:\n\t%d\n\n", graph->approx_pow);
-    #endif
-
-    fprintf (dump_file, "X_Asix_Data:\n");
-    for (int dot_i = 0; dot_i < graph->n_dots; dot_i++)
-        fprintf (dump_file, "\t%f\n", graph->x_arr[dot_i]);
-    fprintf (dump_file, "\n");
-
-    fprintf (dump_file, "X_Error:\n");
-    for (int dot_i = 0; dot_i < graph->n_dots; dot_i++)
-        fprintf (dump_file, "\t%f\n", graph->x_err[dot_i]);
-    fprintf (dump_file, "\n");
-
-    fprintf (dump_file, "X_Title:\n\t%s\n\n", graph->x_title);
-
-    fprintf (dump_file, "Y_Asix_Data:\n");
-    for (int dot_i = 0; dot_i < graph->n_dots; dot_i++)
-        fprintf (dump_file, "\t%f\n", graph->y_arr[dot_i]);
-    fprintf (dump_file, "\n");
-
-    fprintf (dump_file, "Y_Error:\n");
-    for (int dot_i = 0; dot_i < graph->n_dots; dot_i++)
-        fprintf (dump_file, "\t%f\n", graph->y_err[dot_i]);
-    fprintf (dump_file, "\n");
-
-    fprintf (dump_file, "Y_Title:\n\t%s\n\n", graph->y_title);
-
-    fprintf (dump_file, "Image_Name:\n\t%s\n", graph->img_name);
-
-    Close_File (dump_file, "graph_dump/dump.txt");
-
-    return NO_ERRORS;
 }
 #endif

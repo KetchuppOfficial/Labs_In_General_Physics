@@ -1,0 +1,17 @@
+# Service files
+# ~~~~~~~~~~~~~
+*.o
+*.d
+*.out
+*.py
+*.png
+build/
+bin/
+# ~~~~~~~~~~~~~
+
+# Not for release
+# ~~~~~~~~~~~~~~~
+graph_dump/
+for_future/
+Error.lab
+# ~~~~~~~~~~~~~~~
