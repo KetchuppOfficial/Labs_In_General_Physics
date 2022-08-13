@@ -121,7 +121,7 @@ void Print_Line (FILE *file, const char *line_colour, const double *x_data, cons
     printf ("Approximation line: y = kx + b\n");
     printf ("k = %f +- %f;\n"
             "b = %f +- %f\n", chi.k, fabs (chi.k_err), chi.b, fabs(chi.b_err));
-    printf ("***********************************************\n");
+    printf ("***********************************************\n\n");
 
     fprintf (file, "plt.plot (x, ");
     Print_Formula (file, chi.k, chi.b);
