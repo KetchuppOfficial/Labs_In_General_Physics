@@ -17,10 +17,10 @@ enum Modes
 
 int User_Interface (void)
 {
-    printf ("LabaCL - the best choice for labs in general physics\n\n"
-            "Mode:\n"
+    printf ("Laba_Helper - the best choice for labs in general physics\n\n"
+            "Available modes:\n"
             "1) Build a graph;\n"
-            "2) Calculate error\n");
+            "2) Calculate error\n\n");
 
     bool error = true;
 
@@ -46,7 +46,7 @@ int User_Interface (void)
                 break;
             
             default:
-                printf ("There is no mode with number %d. Please, try again.\n", choice);
+                printf ("There is no mode with number %d. Please, try again.\n\n", choice);
         }
     }
 
@@ -60,14 +60,18 @@ static int Get_Int (void)
 
     while (error)
     {
+        printf ("Desired mode: ");
+
         if (scanf ("%d", &num) != 1)
         {
             int incorr_symb = 0;
 
+            printf ("\"");
             while ((incorr_symb = getchar ()) != '\n')
                 putchar (incorr_symb);
+            printf ("\"");
 
-            printf (" is not a number. Try again\n");
+            printf (" is not a number. Please, try again.\n\n");
         }
         else
             error = Warn_About_Incorr_Symbs ();
@@ -85,7 +89,7 @@ static bool Warn_About_Incorr_Symbs (void)
     else
     {
         Clear_Stdin ();
-        printf ("You have written a number and some inappropriate symbols after that. Try again\n");
+        printf ("You have written a number and some inappropriate symbols after that. Please, try again.\n\n");
     }
 
     return error;
