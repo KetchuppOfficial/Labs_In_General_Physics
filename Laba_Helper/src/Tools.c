@@ -56,7 +56,8 @@ struct Buffer Open_File (void)
         {
             printf ("Try again.\n\n");
             continue;
-        }        
+        }
+        printf ("\n");
 
         buffer = File_To_Buffer (file_name);
         if (buffer.str == NULL && buffer.n_symbs == 0)
