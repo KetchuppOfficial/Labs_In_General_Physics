@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
 #include <assert.h>
 
@@ -137,12 +138,11 @@ static char *Make_Buffer (FILE *file, const size_t n_symbs)
     return buffer;
 }
 
-static inline bool Warn_About_Incorr_Symbs (void);
-static inline void Clear_Stdin (void);
+static char *Buffer_Extra_Symbs (void);
 
-int Get_Int (void)
+int Get_Int ()
 {
-    int num = 0.0;
+    int num = 0;
     bool error = true;
 
     while (error)
@@ -153,49 +153,77 @@ int Get_Int (void)
         {
             if (feof (stdin))
             {
-                printf ("EOF was reached. Please, try again\n\n");
+                printf ("\nEOF was reached. Please, try again.\n\n");
                 clearerr (stdin);
-                continue;
             }
             else
             {
-                putchar ('\"');
-                int incorr_symb = 0;
-                while ((incorr_symb = getchar ()) != '\n')
-                    putchar (incorr_symb);
-                printf ('\"');
+                char *buffer = Buffer_Extra_Symbs ();
 
-                printf (" is not a number. Please, try again.\n\n");
+                if (feof (stdin))
+                {
+                    printf ("\n\"%s\" is not a number and EOF was reached. Please, try again.\n\n", buffer);
+                    clearerr (stdin);
+                }
+                else
+                    printf ("\"%s\" is not a number. Please, try again.\n\n", buffer);
+                
+                free (buffer);
             }
         }
         else
-            error = Warn_About_Incorr_Symbs ();
+        {
+            int next_char = getchar ();
+
+            if (next_char == '\n')
+                error = false;
+            else if (next_char == EOF)
+            {
+                printf ("\nEOF was reached. Please, try again.\n\n");
+                clearerr (stdin);
+            }
+            else
+            {
+                ungetc (next_char, stdin);
+
+                char *buffer = Buffer_Extra_Symbs ();
+
+                if (feof (stdin))
+                {
+                    printf ("\n\"%d%s\" is not a number and EOF was reached. Please, try again.\n\n", num, buffer);
+                    clearerr (stdin);
+                }
+                else
+                    printf ("\"%d%s\" is not a number. Please, try again.\n\n", num, buffer);
+
+                free (buffer);
+            }
+        }
     }
 
     return num;
 }
 
-static bool Warn_About_Incorr_Symbs (void)
+static char *Buffer_Extra_Symbs (void)
 {
-    bool error = true;
-
-    if (getchar() == '\n')
-        error = false;
-    else
+    size_t size = 20;
+    char *buffer = (char *)Calloc_ (size, sizeof (char));
+    
+    size_t char_i = 0;
+    int extra_symb = getchar ();
+    while (extra_symb != '\n' && extra_symb != EOF)
     {
-        Clear_Stdin ();
-        printf ("You have written a number and some inappropriate symbols after that. Please, try again.\n\n");
+        if (char_i >= size)
+        {
+            Recalloc_ (buffer, size, size * 2);
+            size *= 2;
+        }
+
+        buffer[char_i++] = (char)extra_symb;
+        extra_symb = getchar ();
     }
 
-    return error;
-}
-
-static inline void Clear_Stdin (void)
-{
-    while (getchar () != '\n')
-    {
-        ;
-    }
+    return buffer;
 }
 
 void *Calloc_ (const size_t n_elems, const size_t elem_size)
@@ -206,4 +234,16 @@ void *Calloc_ (const size_t n_elems, const size_t elem_size)
         printf ("Heap exhaused\n");
 
     return ptr;
+}
+
+void *Recalloc_ (void *ptr, size_t old_size, size_t new_size)
+{
+    void *ret = realloc (ptr, new_size);
+
+    if (ret == NULL)
+        printf ("Heap exhausted\n");
+    else
+        memset (ret + old_size, 0, new_size - old_size);
+    
+    return ret;
 }
