@@ -9,8 +9,6 @@
 #include "Graph.h"
 #include "Tools.h"
 
-#define GRAPH_COMPILER_DEBUG
-
 // ======================== GRAPH "CLASS" AND ITS METHODS ======================== //
 
 struct Graph
@@ -273,9 +271,9 @@ int Graph_Compiler (struct Graph *graph)
 
     if (D_Preprocessor (&buffer) == error)
     {
-        #ifdef GRAPH_COMPILER_DEBUG
+        #ifdef LABA_HELPER_DEBUG
         printf ("D_Preprocessor ()) terminated with error\n");
-        #endif
+        #endif // LABA_HELPER_DEBUG
         return error;
     }
 
@@ -283,17 +281,17 @@ int Graph_Compiler (struct Graph *graph)
     struct D_Token *token_arr = D_Lexer (buffer, &n_tokens);
     if (token_arr == NULL)
     {
-        #ifdef GRAPH_COMPILER_DEBUG
+        #ifdef LABA_HELPER_DEBUG
         printf ("D_Lexer () terminated with error\n");
-        #endif
+        #endif // LABA_HELPER_DEBUG
         return error;
     }
 
     if (D_Parser (token_arr, n_tokens, buffer, graph) == error)
     {
-        #ifdef GRAPH_COMPILER_DEBUG
+        #ifdef LABA_HELPER_DEBUG
         printf ("D_Parser () terminated with error\n");
-        #endif
+        #endif // LABA_HELPER_DEBUG
         return error;
     }
 
@@ -382,7 +380,7 @@ static void Show_Error (const struct Buffer buffer, const size_t err_symb_i, con
 static inline void Skip_Spaces    (const struct Buffer buffer, size_t *symb_i);
 static int         Get_Token      (struct D_Token *token_arr, const int token_i, const struct Buffer buffer, size_t *symb_i);
 static int         Get_Label_Name (struct D_Token *token_arr, const int token_i, const struct Buffer buffer, size_t *symb_i);
-static int         Get_String     (struct D_Token *token_arr, const int token_i, const struct Buffer buffer, size_t *symb_i);
+static int         Get_Str        (struct D_Token *token_arr, const int token_i, const struct Buffer buffer, size_t *symb_i);
 static int         Get_Number     (struct D_Token *token_arr, const int token_i, const struct Buffer buffer, size_t *symb_i);
 
 static struct D_Token *D_Lexer (const struct Buffer buffer, int *n_tokens)
@@ -405,9 +403,9 @@ static struct D_Token *D_Lexer (const struct Buffer buffer, int *n_tokens)
 
         if (Get_Token (token_arr, token_i, buffer, &symb_i) == error)
         {
-            #ifdef GRAPH_COMPILER_DEBUG
+            #ifdef LABA_HELPER_DEBUG
             printf ("Get_Token () terminated with error\n");
-            #endif
+            #endif // LABA_HELPER_DEBUG
             free (token_arr);
             return NULL;
         }
@@ -437,9 +435,9 @@ static int Get_Token (struct D_Token *token_arr, const int token_i, const struct
     {
         if (Get_Label_Name (token_arr, token_i, buffer, symb_i) == error)
         {
-            #ifdef GRAPH_COMPILER_DEBUG
+            #ifdef LABA_HELPER_DEBUG
             printf ("Get_Label_Name () terminated with error\n");
-            #endif
+            #endif // LABA_HELPER_DEBUG
             return error;
         }
     }
@@ -447,11 +445,11 @@ static int Get_Token (struct D_Token *token_arr, const int token_i, const struct
     {
         (*symb_i)++;
         
-        if (Get_String (token_arr, token_i, buffer, symb_i) == error)
+        if (Get_Str (token_arr, token_i, buffer, symb_i) == error)
         {
-            #ifdef GRAPH_COMPILER_DEBUG
+            #ifdef LABA_HELPER_DEBUG
             printf ("Get_String () terminated with error\n");
-            #endif
+            #endif // LABA_HELPER_DEBUG
             return error;
         }
     }
@@ -460,9 +458,9 @@ static int Get_Token (struct D_Token *token_arr, const int token_i, const struct
     {
         if (Get_Number (token_arr, token_i, buffer, symb_i) == error)
         {
-            #ifdef GRAPH_COMPILER_DEBUG
+            #ifdef LABA_HELPER_DEBUG
             printf ("Get_Number () terminated with error\n");
-            #endif
+            #endif // LABA_HELPER_DEBUG
             return error;
         }
     }
@@ -508,7 +506,7 @@ static int Get_Label_Name (struct D_Token *token_arr, const int token_i, const s
     return error;
 }
 
-static int Get_String (struct D_Token *token_arr, const int token_i, const struct Buffer buffer, size_t *symb_i)
+static int Get_Str (struct D_Token *token_arr, const int token_i, const struct Buffer buffer, size_t *symb_i)
 {       
     assert (token_arr);
     assert (buffer.str);
@@ -653,9 +651,9 @@ static int D_Parser (const struct D_Token *token_arr, const int n_tokens,
                     return error;
                 if (One_Label_Check (token_arr, token_i, buffer) == error)
                 {
-                    #ifdef GRAPH_COMPILER_DEBUG
+                    #ifdef LABA_HELPER_DEBUG
                     printf ("One_Label_Check () terminated with error\n");
-                    #endif
+                    #endif // LABA_HELPER_DEBUG
                     free (graph->x_data);
                     return error;
                 }
@@ -667,9 +665,9 @@ static int D_Parser (const struct D_Token *token_arr, const int n_tokens,
                     return error;
                 if (One_Label_Check (token_arr, token_i, buffer) == error)
                 {
-                    #ifdef GRAPH_COMPILER_DEBUG
+                    #ifdef LABA_HELPER_DEBUG
                     printf ("One_Label_Check () terminated with error\n");
-                    #endif
+                    #endif // LABA_HELPER_DEBUG
                     free (graph->x_err);
                     return error;
                 }
@@ -681,9 +679,9 @@ static int D_Parser (const struct D_Token *token_arr, const int n_tokens,
                     return error;
                 if (One_Label_Check (token_arr, token_i, buffer) == error)
                 {
-                    #ifdef GRAPH_COMPILER_DEBUG
+                    #ifdef LABA_HELPER_DEBUG
                     printf ("One_Label_Check () terminated with error\n");
-                    #endif
+                    #endif // LABA_HELPER_DEBUG
                     free (graph->y_data);
                     return error;
                 }
@@ -694,9 +692,9 @@ static int D_Parser (const struct D_Token *token_arr, const int n_tokens,
                 if (graph->y_err == NULL)
                 if (One_Label_Check (token_arr, token_i, buffer) == error)
                 {
-                    #ifdef GRAPH_COMPILER_DEBUG
+                    #ifdef LABA_HELPER_DEBUG
                     printf ("One_Label_Check () terminated with error\n");
-                    #endif
+                    #endif // LABA_HELPER_DEBUG
                     free (graph->y_err);
                     return error;
                 }
@@ -706,9 +704,9 @@ static int D_Parser (const struct D_Token *token_arr, const int n_tokens,
                 graph->line_type = DOTS;
                 if (One_Label_Check (token_arr, token_i, buffer) == error)
                 {
-                    #ifdef GRAPH_COMPILER_DEBUG
+                    #ifdef LABA_HELPER_DEBUG
                     printf ("One_Label_Check () terminated with error\n");
-                    #endif
+                    #endif // LABA_HELPER_DEBUG
                     return error;
                 }
                 break;
@@ -726,9 +724,9 @@ static int D_Parser (const struct D_Token *token_arr, const int n_tokens,
             case IMG_NAME:
                 if (One_Label_Check (token_arr, token_i, buffer) == error)
                 {
-                    #ifdef GRAPH_COMPILER_DEBUG
+                    #ifdef LABA_HELPER_DEBUG
                     printf ("One_Label_Check () terminated with error\n");
-                    #endif
+                    #endif // LABA_HELPER_DEBUG
                     return error;
                 }
                 break;
@@ -738,9 +736,9 @@ static int D_Parser (const struct D_Token *token_arr, const int n_tokens,
             {
                 if (Handle_Int_Num (graph, token_arr, token_i, buffer) == error)
                 {
-                    #ifdef GRAPH_COMPILER_DEBUG
+                    #ifdef LABA_HELPER_DEBUG
                     printf ("Handle_Int_Num () terminated with error\n");
-                    #endif
+                    #endif // LABA_HELPER_DEBUG
                 }
                 break;
             }
@@ -749,9 +747,9 @@ static int D_Parser (const struct D_Token *token_arr, const int n_tokens,
             case FP_NUM:
                 if (Handle_FP_Num (graph, token_arr, token_i, buffer, &values) == error)
                 {
-                    #ifdef GRAPH_COMPILER_DEBUG
+                    #ifdef LABA_HELPER_DEBUG
                     printf ("Handle_FP_Num () terminated with error\n");
-                    #endif
+                    #endif // LABA_HELPER_DEBUG
                     return error;
                 }
                 break;
@@ -759,27 +757,27 @@ static int D_Parser (const struct D_Token *token_arr, const int n_tokens,
             case STR:               
                 if (Handle_String (graph, token_arr, token_i, buffer) == error)
                 {
-                    #ifdef GRAPH_COMPILER_DEBUG
+                    #ifdef LABA_HELPER_DEBUG
                     printf ("Handle_String () terminated with error\n");
-                    #endif
+                    #endif // LABA_HELPER_DEBUG
                     return error;
                 }
                 break;
 
             default:
-                #ifdef GRAPH_COMPILER_DEBUG
+                #ifdef LABA_HELPER_DEBUG
                 printf ("Unknown value found: token_arr[token_i].name = %d\n",
                         token_arr[token_i].name);
-                #endif
+                #endif // LABA_HELPER_DEBUG
                 return error;
         }
     }
 
     if (Check_Graph (graph, &values) == error)
     {
-        #ifdef GRAPH_COMPILER_DEBUG
+        #ifdef LABA_HELPER_DEBUG
         printf ("Check_Graph () terminated with error\n");
-        #endif
+        #endif // LABA_HELPER_DEBUG
         return error;
     }
 
