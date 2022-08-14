@@ -15,9 +15,11 @@ struct Buffer
     size_t n_symbs;
 };
 
-struct Buffer Open_File        (void);
-struct Buffer File_To_Buffer   (const char *file_name);
-void          *Calloc_         (const size_t n_elems, const size_t elem_size);
-size_t        Define_File_Size (FILE *file);
+struct Buffer  Open_File        (void);
+struct Buffer  File_To_Buffer   (const char *file_name);
+void          *Calloc_          (const size_t n_elems, const size_t elem_size);
+size_t         Define_File_Size (FILE *file);
+int            Get_Int          (void);
+char          *Get_String       (char *str, const int n_symbs);
 
 #endif // TOOLS_H_INCLUDED
