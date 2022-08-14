@@ -21,6 +21,6 @@ void          *Calloc_          (const size_t n_elems, const size_t elem_size);
 void          *Recalloc_        (void *ptr, size_t old_size, size_t new_size);
 size_t         Define_File_Size (FILE *file);
 int            Get_Int          (void);
-char          *Get_String       (char *str, const int n_symbs);
+char          *Get_String       (void);
 
 #endif // TOOLS_H_INCLUDED

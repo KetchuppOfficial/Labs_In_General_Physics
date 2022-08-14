@@ -5,8 +5,6 @@
 
 #include "Tools.h"
 
-#define MAX_FILE_NAME 50
-
 struct Buffer Open_File (void)
 {
     bool error_flag = true;
@@ -16,62 +14,73 @@ struct Buffer Open_File (void)
     {
         printf ("Type the name of file specifying the directory: ");
 
-        char file_name[MAX_FILE_NAME] = "";
-
-        if (Get_String (file_name, MAX_FILE_NAME) == NULL)
-        {
-            printf ("Try again.\n\n");
-            clearerr (stdin);
+        char *file_name = Get_String ();
+        if (file_name == NULL)
             continue;
-        }
-
-        printf ("\n");
-
-        buffer = File_To_Buffer (file_name);
-        if (buffer.str == NULL && buffer.n_symbs == 0)
-        {
-            printf ("Try again.\n\n");
-            continue;
-        }
         else
-            error_flag = false;
+        {
+            buffer = File_To_Buffer (file_name);
+            free (file_name);
+            if (buffer.str == NULL && buffer.n_symbs == 0)
+            {
+                printf (" Please, try again.\n\n");
+                continue;
+            }
+            else
+                error_flag = false;
+        }
     }
 
     return buffer;
 }
 
-char *Get_String (char *str, const int n_symbs)
+static char *Buffer_Stdin (void);
+
+char *Get_String (void)
 {
-    assert (str);
-    
-    int symb_i = 0;
-    char *ret_val = fgets (str, n_symbs, stdin);
+    char *buffer = Buffer_Stdin ();
+    if (buffer == NULL)
+        return NULL;
 
-    if (ret_val)
+    if (feof (stdin))
     {
-        while (str[symb_i] != '\n' && str[symb_i] != '\0')
-            symb_i++;
+        printf ("\nEOF was reached. Please, try again.\n\n");
+        clearerr (stdin);
+        free (buffer);
 
-        if (str[symb_i] == '\n')
-            str[symb_i] = '\0';
-        else
+        return NULL;
+    }
+
+    return buffer;
+}
+
+static char *Buffer_Stdin (void)
+{
+    size_t size = 50;
+    char *buffer = (char *)Calloc_ (size, sizeof (char));
+    if (buffer == NULL)
+        return NULL;
+
+    size_t char_i = 0;
+    int symb = getchar ();
+    while (symb != '\n' && symb != EOF)
+    {
+        if (char_i >= size)
         {
-            while (getchar () != '\n')
-                continue;
+            buffer = Recalloc_ (buffer, size, size * 2);
+            if (buffer == NULL)
+                return NULL;
+
+            size *= 2;
         }
-    }
-    else if (ferror (stdin))
-    {
-        printf ("ferror() detected error in last reading from stdin\n");
-        return NULL;
-    }
-    else if (feof (stdin))
-    {
-        printf ("EOF was reached\n");
-        return NULL;
+
+        buffer[char_i++] = (char)symb;
+        symb = getchar ();
     }
 
-    return ret_val;
+    buffer[char_i] = '\0';
+
+    return buffer;
 }
 
 static char *Make_Buffer (FILE *file, const size_t n_symbs);
@@ -85,13 +94,13 @@ struct Buffer File_To_Buffer (const char *file_name)
     FILE *file = fopen (file_name, "rb");
     if (file == NULL)
     {
-        printf ("File \"%s\" does not exist or cannot be opened.\n", file_name);
+        printf ("File \"%s\" does not exist or cannot be opened.", file_name);
         return buffer;
     }
 
     if ((buffer.n_symbs = Define_File_Size (file)) == 0)
     {
-        printf ("File \"%s\" is empty.\n", file_name);
+        printf ("File \"%s\" is empty.", file_name);
         return buffer;
     }
 
@@ -138,8 +147,6 @@ static char *Make_Buffer (FILE *file, const size_t n_symbs)
     return buffer;
 }
 
-static char *Buffer_Extra_Symbs (void);
-
 int Get_Int ()
 {
     int num = 0;
@@ -158,11 +165,12 @@ int Get_Int ()
             }
             else
             {
-                char *buffer = Buffer_Extra_Symbs ();
+                char *buffer = Buffer_Stdin ();
 
                 if (feof (stdin))
                 {
-                    printf ("\n\"%s\" is not a number and EOF was reached. Please, try again.\n\n", buffer);
+                    printf ("\n\"%s\" is not a number and EOF was reached. "
+                            "Please, try again.\n\n", buffer);
                     clearerr (stdin);
                 }
                 else
@@ -186,15 +194,17 @@ int Get_Int ()
             {
                 ungetc (next_char, stdin);
 
-                char *buffer = Buffer_Extra_Symbs ();
+                char *buffer = Buffer_Stdin ();
 
                 if (feof (stdin))
                 {
-                    printf ("\n\"%d%s\" is not a number and EOF was reached. Please, try again.\n\n", num, buffer);
+                    printf ("\n\"%d%s\" is not a number and EOF was reached. "
+                            "Please, try again.\n\n", num, buffer);
                     clearerr (stdin);
                 }
                 else
-                    printf ("\"%d%s\" is not a number. Please, try again.\n\n", num, buffer);
+                    printf ("\"%d%s\" is not a number. Please, try again.\n\n", 
+                            num, buffer);
 
                 free (buffer);
             }
@@ -202,28 +212,6 @@ int Get_Int ()
     }
 
     return num;
-}
-
-static char *Buffer_Extra_Symbs (void)
-{
-    size_t size = 20;
-    char *buffer = (char *)Calloc_ (size, sizeof (char));
-    
-    size_t char_i = 0;
-    int extra_symb = getchar ();
-    while (extra_symb != '\n' && extra_symb != EOF)
-    {
-        if (char_i >= size)
-        {
-            Recalloc_ (buffer, size, size * 2);
-            size *= 2;
-        }
-
-        buffer[char_i++] = (char)extra_symb;
-        extra_symb = getchar ();
-    }
-
-    return buffer;
 }
 
 void *Calloc_ (const size_t n_elems, const size_t elem_size)
