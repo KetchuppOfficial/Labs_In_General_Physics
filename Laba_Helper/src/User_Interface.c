@@ -5,10 +5,6 @@
 
 #define MAX_FILE_NAME 50
 
-static int          Get_Int                 (void);
-static bool         Warn_About_Incorr_Symbs (void);
-static inline void  Clear_Stdin             (void);
-
 enum Modes
 {
     BUILD_GRAPH = 1,
@@ -22,9 +18,9 @@ int User_Interface (void)
             "1) Build a graph;\n"
             "2) Calculate error\n\n");
 
-    bool error = true;
+    bool error_flag = true;
 
-    while (error)
+    while (error_flag)
     {
         int choice = Get_Int ();
 
@@ -33,16 +29,39 @@ int User_Interface (void)
             case BUILD_GRAPH:
             {
                 struct Graph *graph = Graph_Ctor ();
-                Graph_Compiler (graph);
-                Print_Graph (graph);
+                if (graph == NULL)
+                {
+                    #ifdef LABA_HELPER_DEBUG
+                    printf ("Graph_Ctor () terminated with error\n");
+                    #endif // LABA_HELPER_DEBUG
+                    return error;
+                }
+
+                if (Graph_Compiler (graph) == error)
+                {
+                    #ifdef LABA_HELPER_DEBUG
+                    printf ("Graph_Compiler () terminated with error\n");
+                    #endif // LABA_HELPER_DEBUG
+                    return error;
+                }
+
+                if (Print_Graph (graph) == error)
+                {
+                    #ifdef LABA_HELPER_DEBUG
+                    printf ("Print_Graph () terminated with error\n");
+                    #endif // LABA_HELPER_DEBUG
+                    return error;
+                }
+
                 Graph_Dtor (graph);
 
-                error = false;
+                error_flag = false;
                 break;
             }
+            
             case CALC_ERROR:
                 printf ("Sorry, calculating error is not supported now :(\n");
-                error = false;
+                error_flag = false;
                 break;
             
             default:
@@ -51,54 +70,4 @@ int User_Interface (void)
     }
 
     return success;
-}
-
-static int Get_Int (void)
-{
-    int num = 0.0;
-    bool error = true;
-
-    while (error)
-    {
-        printf ("Desired mode: ");
-
-        if (scanf ("%d", &num) != 1)
-        {
-            int incorr_symb = 0;
-
-            printf ("\"");
-            while ((incorr_symb = getchar ()) != '\n')
-                putchar (incorr_symb);
-            printf ("\"");
-
-            printf (" is not a number. Please, try again.\n\n");
-        }
-        else
-            error = Warn_About_Incorr_Symbs ();
-    }
-
-    return num;
-}
-
-static bool Warn_About_Incorr_Symbs (void)
-{
-    bool error = true;
-
-    if (getchar() == '\n')
-        error = false;
-    else
-    {
-        Clear_Stdin ();
-        printf ("You have written a number and some inappropriate symbols after that. Please, try again.\n\n");
-    }
-
-    return error;
-}
-
-static inline void Clear_Stdin (void)
-{
-    while (getchar () != '\n')
-    {
-        ;
-    }
 }
