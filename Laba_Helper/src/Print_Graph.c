@@ -117,7 +117,7 @@ void Print_Line (FILE *file, const char *line_colour, const double *x_data, cons
 
     struct Chi_Sq chi = Linear_Chi_Square (x_data, x_err, y_data, y_err, n_dots);
 
-    printf ("*********** Chi-square coefficients ***********\n");
+    printf ("\n*********** Chi-square coefficients ***********\n");
     printf ("Approximation line: y = kx + b\n");
     printf ("k = %f +- %f;\n"
             "b = %f +- %f\n", chi.k, fabs (chi.k_err), chi.b, fabs(chi.b_err));
