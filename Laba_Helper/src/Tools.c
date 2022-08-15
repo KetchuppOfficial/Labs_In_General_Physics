@@ -91,6 +91,15 @@ struct Buffer File_To_Buffer (const char *file_name)
     
     struct Buffer buffer = {};
     
+    int is_dir = Is_Directory (file_name);
+    if (is_dir == error)
+        return buffer;
+    else if (is_dir)
+    {
+        printf ("\"%s\" is a directory, not a file.", file_name);
+        return buffer;
+    }
+
     FILE *file = fopen (file_name, "rb");
     if (file == NULL)
     {
@@ -122,6 +131,22 @@ size_t Define_File_Size (FILE *file)
     fseek (file, start_pos, SEEK_SET);
 
     return (size_t)n_symbs;
+}
+
+int Is_Directory (const char *path)
+{
+   struct stat statbuf;
+
+    if (stat(path, &statbuf) != 0)
+    {
+        printf ("Calling of stat() was not successful\n");
+        return error;
+    }
+
+    if (S_ISDIR(statbuf.st_mode))
+        return error + 1; // positive value but that is not equal to value
+    else
+        return 0;
 }
 
 static char *Make_Buffer (FILE *file, const size_t n_symbs)
