@@ -144,7 +144,7 @@ int Is_Directory (const char *path)
     }
 
     if (S_ISDIR(statbuf.st_mode))
-        return error + 1; // positive value but that is not equal to value
+        return error + 1; // positive value that is not equal to "error"
     else
         return 0;
 }
