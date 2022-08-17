@@ -93,7 +93,10 @@ struct Buffer File_To_Buffer (const char *file_name)
     
     int is_dir = Is_Directory (file_name);
     if (is_dir == error)
+    {
+        printf ("File \"%s\" does not exist.", file_name);
         return buffer;
+    }
     else if (is_dir)
     {
         printf ("\"%s\" is a directory, not a file.", file_name);
@@ -103,7 +106,7 @@ struct Buffer File_To_Buffer (const char *file_name)
     FILE *file = fopen (file_name, "rb");
     if (file == NULL)
     {
-        printf ("File \"%s\" does not exist or cannot be opened.", file_name);
+        printf ("Unknown error."); // temporary
         return buffer;
     }
 
@@ -138,10 +141,7 @@ int Is_Directory (const char *path)
    struct stat statbuf;
 
     if (stat(path, &statbuf) != 0)
-    {
-        printf ("Calling of stat() was not successful\n");
         return error;
-    }
 
     if (S_ISDIR(statbuf.st_mode))
         return error + 1; // positive value that is not equal to "error"
