@@ -11,8 +11,8 @@ cd ./Labs_In_General_Physics/Laba_Helper
 1) Build & Run
 ```
 cmake -B build
-cmake --build build
 cd build
+cmake --build .
 ./Laba_Helper
 ```
 
