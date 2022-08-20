@@ -30,7 +30,7 @@ When this program asks you to "type the name of a file specifying the directory"
 
 **Description file** is a text file that describes how your graph should look and what data it should represent. Every desctiprion file consists of *labels*, *strings* and *numbers*. We will call them all together as *structural units*.
 
-A structural unit is sequence of characters that has a specific semantic meansing. Structural units are separated from each other by at least one whitespace character.
+A structural unit is sequence of characters that has a specific semantic meaning. Structural units are separated from each other by at least one whitespace character.
 
 Let's discuss types of structural units in turn.
 
