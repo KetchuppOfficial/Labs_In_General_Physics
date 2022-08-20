@@ -175,3 +175,11 @@ A number is almost a C number of type **double**. Even if all fractional digits 
 
 ### Graph Example
 ![graph_example](/Laba_Helper/pictures/graph_example.png)
+
+## Comments
+
+Apart from discussed structural units you can write comments in description files. These comments behave exactly like those in C++: all characters starting with two slashes in a row and ending with EOL (end of line) character are ignored.
+```
+Graph_Title: // this is comment #1
+    "U(I)"   // this is comment #2
+```
