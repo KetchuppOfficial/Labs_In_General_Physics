@@ -28,7 +28,7 @@ cd build
 
 When this program asks you to "type the name of a file specifying the directory", it expects you to specify the path to a **description file** of your future graph.
 
-**Description file** is a text file that describes how your graph should look and what data it should represent. Every desctiprion file consists of *labels*, *strings* and *numbers*. We will call them all together as *structural units*. 
+**Description file** is a text file that describes how your graph should look and what data it should represent. Every desctiprion file consists of *labels*, *strings* and *numbers*. We will call them all together as *structural units*.
 
 A structural unit is sequence of characters that has a specific semantic meansing. Structural units are separated from each other by at least one whitespace character.
 
@@ -95,7 +95,7 @@ There are 13 labels:
 
 8) **X_Title**
 ```
-    Next structural unit: a string representing the title of the abscissa axis.
+    Next structural unit: a string representing the title of the abscissa axis (see Graph Example, 3).
 ```
 
 9) **Y_Data**
@@ -114,7 +114,7 @@ There are 13 labels:
 
 11) **Y_Title**
 ```
-    Next structural unit: a string representing the title of the ordinate axis.
+    Next structural unit: a string representing the title of the ordinate axis (see Graph Example, 4).
 ```
 
 12) **Error_Colour**
