@@ -985,21 +985,24 @@ static int Check_Graph (struct Graph *graph, const struct Values *values)
     
     if (graph->title == NULL)
     {
-        printf ("************ ERROR REPORT ************\n"
-                "\"Graph_Title\" label is forgotten\n"
+        printf ("\n"
+                "************ ERROR REPORT ************\n"
+                "*  \"Graph_Title\" label is forgotten   *\n"
                 "**************************************\n");
         return error;
     }
-    else if (graph->dot_label == NULL)
+    
+    if (graph->dot_label == NULL)
     {
-        printf ("************ ERROR REPORT ************\n"
-                "\"Dot_Label\" label is forgotten\n"
+        printf ("\n"
+                "************ ERROR REPORT ************\n"
+                "*   \"Dot_Label\" label is forgotten   *\n"
                 "**************************************\n");
         return error;
     }
 
     #ifdef POLINOMICAL_APPROX
-    else if (graph->approx_pow == -1)
+    if (graph->approx_pow == -1)
     {
         printf ("************ ERROR REPORT ************\n"
                 "\"Approximation_Power\" label is forgotten\n"
@@ -1008,57 +1011,71 @@ static int Check_Graph (struct Graph *graph, const struct Values *values)
     }
     #endif // POLINOMICAL_APPROX
 
-    else if (graph->x_data == NULL)
+    if (graph->x_data == NULL)
     {
-        printf ("************ ERROR REPORT ************\n"
-                "\"X_Data\" label is forgotten\n"
+        printf ("\n"
+                "************ ERROR REPORT ************\n"
+                "*    \"X_Data\" label is forgotten     *\n"
                 "**************************************\n");
         return error;
     }
-    else if (graph->x_err == NULL)
+    
+    if (graph->x_err == NULL)
     {
-        printf ("************ ERROR REPORT ************\n"
-                "\"X_Error\" label is forgotten\n"
+        printf ("\n"
+                "************ ERROR REPORT ************\n"
+                "*    \"X_Error\" label is forgotten    *\n"
                 "**************************************\n");
         return error;
     }
-    else if (graph->x_title == NULL)
+    
+    if (graph->x_title == NULL)
     {
-        printf ("************ ERROR REPORT ************\n"
-                "\"X_Title\" label is forgotten\n"
+        printf ("\n"
+                "************ ERROR REPORT ************\n"
+                "*    \"X_Error\" label is forgotten    *\n"
                 "**************************************\n");
         return error;
     }
-    else if (graph->y_data == NULL)
+    
+    if (graph->y_data == NULL)
     {
-        printf ("************ ERROR REPORT ************\n"
-                "\"Y_Data\" label is forgotten\n"
+        printf ("\n"
+                "************ ERROR REPORT ************\n"
+                "*    \"Y_Data\" label is forgotten     *\n"
                 "**************************************\n");
         return error;
     }
-    else if (graph->y_err == NULL)
+    
+    if (graph->y_err == NULL)
     {
-        printf ("************ ERROR REPORT ************\n"
-                "\"Y_Error\" label is forgotten\n"
+        printf ("\n"
+                "************ ERROR REPORT ************\n"
+                "*    \"Y_Error\" label is forgotten    *\n"
                 "**************************************\n");
         return error;
     }
-    else if (graph->y_title == NULL)
+    
+    if (graph->y_title == NULL)
     {
-        printf ("************ ERROR REPORT ************\n"
-                "\"Y_Title\" label is forgotten\n"
+        printf ("\n"
+                "************ ERROR REPORT ************\n"
+                "*    \"Y_Error\" label is forgotten    *\n"
                 "**************************************\n");
         return error;
     }
-    else if (graph->img_name == NULL)
+    
+    if (graph->img_name == NULL)
     {
-        printf ("************ ERROR REPORT ************\n"
-                "\"Image_Name\" label is forgotten\n"
+        printf ("\n"
+                "************ ERROR REPORT ************\n"
+                "*  \"Image_Name\" label is forgotten   *\n"
                 "**************************************\n");
         return error;
     }
+
     #ifdef POLINOMICAL_APPROX
-    else if (graph->approx_pow + 2 <= graph->n_dots)
+    if (graph->approx_pow + 2 <= graph->n_dots)
     {
         printf ("************ ERROR REPORT ************\n"
                 "\"Approximation_Power\" has to be 2 more than number of dots or they have to be equal\n"
@@ -1078,6 +1095,14 @@ static int Check_Graph (struct Graph *graph, const struct Values *values)
     }
     else
         graph->n_dots = values->x_data;
+    
+    if (graph->n_dots < 3)
+    {
+        printf ("******************** ERROR REPORT ********************\n"
+                "The quantity of dots on the graph has to be at least 3\n"
+                "******************************************************\n");
+        return error;
+    }
 
     return success;
 }
