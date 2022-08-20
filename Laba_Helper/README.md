@@ -63,7 +63,9 @@ There are 13 labels:
 
 4) **No_Line**
 ```
-    This label has to be the last structural unit of a desctiption file or it should be followed by another label. If this label is presented, there will not be a line on graph (just dots).
+    This label has to be the last structural unit of a desctiption file or has to be followed by another label.
+
+    If No_Line label is presented, there will be no a line on graph (just dots).
 
     No_Line label is optional.
 
@@ -83,14 +85,22 @@ There are 13 labels:
 ```
     Next structural unit: a number representing a value on the abscissa axis.
 
-    This label can be followed by more than one number. A quantity of following numbers has to be same as that of X_Error, Y_Data and Y_Error labels and has to be not less than 3.
+    This label can be followed by more than one number.
+    
+    A quantity of following numbers has to be same as that of X_Error, Y_Data and Y_Error labels.
+    
+    A quantity of following numbers has to be not less than 3.
 ```
 
 7) **X_Error**
 ```
     Next structural unit: a number representing a margin of error of the respective value on the abscissa axis.
 
-    This label can be followed by more than one number. A quantity of following numbers has to be same as that of X_Data, Y_Data and Y_Error labels and has to be not less than 3.
+    This label can be followed by more than one number.
+    
+    A quantity of following numbers has to be same as that of X_Data, Y_Data and Y_Error labels.
+    
+    A quantity of following numbers has to be not less than 3.
 ```
 
 8) **X_Title**
@@ -102,14 +112,22 @@ There are 13 labels:
 ```
     Next structural unit: a number representing a value on the ordinate axis.
 
-    This label can be followed by more than one number. A quantity of following numbers has to be same as that of X_Data, X_Error, and Y_Error labels and has to be not less than 3.
+    This label can be followed by more than one number.
+    
+    A quantity of following numbers has to be same as that of X_Data, X_Error, and Y_Error labelas.
+
+    A quantity of following numbers has to be not less than 3.
 ```
 
 10) **Y_Error**
 ```
     Next structural unit: a number representing a margin of error of the respective value on the ordinate axis.
 
-    This label can be followed by more than one number. A quantity of following numbers has to be same as that of X_Data, X_Error and Y_Data labels and has to be not less than 3.
+    This label can be followed by more than one number. 
+    
+    A quantity of following numbers has to be same as that of X_Data, X_Error and Y_Data labels.
+    
+    A quantity of following numbers has to be not less than 3.
 ```
 
 11) **Y_Title**
@@ -126,7 +144,9 @@ There are 13 labels:
 
 13) **Image_Name**
 ```
-    Next structural unit: a string representing the path to the future graph. The name of the graph-file has to be specified too.
+    Next structural unit: a string representing the path to the future graph.
+    
+    The name of the graph-file has to be specified too.
 ```
 
 If a label is followed by an unexpectec structural unit, the program terminated with an error and an error report is shown on the screen (more on than later).
