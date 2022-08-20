@@ -12,7 +12,7 @@ struct Buffer Open_File (void)
     
     while (error_flag)
     {
-        printf ("Type the name of file specifying the directory: ");
+        printf ("Type the name of a file specifying the directory: ");
 
         char *file_name = Get_String ();
         if (file_name == NULL)
