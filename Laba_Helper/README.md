@@ -149,7 +149,7 @@ There are 13 labels:
     The name of the graph-file has to be specified too.
 ```
 
-If a label is followed by an unexpectec structural unit, the program terminated with an error and an error report is shown on the screen (more on than later).
+If a label is followed by an unexpected structural unit, the program terminated with an error and an error report is shown on the screen (more on than later).
 
 ### Strings
 
@@ -157,12 +157,12 @@ A string is a sequence of more than 1 characters surrounded by double quotes. Th
 ```
     "Hello, World!"    // a string
     "./test_graph.png" // also a string
-    ""                 // empty string: forbidded
+    ""                 // empty string: forbidden
 ```
 
 ### Numbers
 
-A number is almost a C number of type **double**. Even if all fractional digits are zeros a number has to end in a decimal point and at least one trailing zero.
+A number is almost a C number of type **double**. Even if all fractional digits are zeros a number has to end in a decimal point and has to have at least one trailing zero.
 ```
     3.14 // a number
     2.72 // also a number
