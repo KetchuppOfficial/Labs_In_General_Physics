@@ -45,9 +45,9 @@ int Print_Graph (const struct Graph *graph)
                    "import numpy as np\n"
                    "from matplotlib import style\n\n");
                 
-    fprintf (file, "plt.figure (figsize = (10, 5.625), dpi = 80)\n\n"
+    fprintf (file, "plt.figure (figsize = (16, 9), dpi = 80)\n\n"
 
-                   "plt.title (\'%s\', fontsize = 16)\n\n", title);
+                   "plt.title (\'%s\', fontsize = 24)\n\n", title);
 
     Print_Arr (file, "x", x_data, n_dots);
     Print_Arr (file, "y", y_data, n_dots);
@@ -66,11 +66,11 @@ int Print_Graph (const struct Graph *graph)
     if (line_type == POLINOMICAL)
         Print_Line (file, line_colour, x_data, x_err, y_data, y_err, n_dots);
 
-    fprintf (file,  "plt.xlabel (\'%s\', fontsize = 16)\n"
-                    "plt.xticks (fontsize = 16, ha = 'center', va = 'top')\n\n", x_title);
+    fprintf (file,  "plt.xlabel (\'%s\', fontsize = 24)\n"
+                    "plt.xticks (fontsize = 20, ha = 'center', va = 'top')\n\n", x_title);
 
-    fprintf (file,  "plt.ylabel (\'%s\', fontsize = 16)\n"
-                    "plt.yticks (fontsize = 16, rotation = 30, ha = 'right', va = 'top')\n\n", y_title);
+    fprintf (file,  "plt.ylabel (\'%s\', fontsize = 24)\n"
+                    "plt.yticks (fontsize = 20, rotation = 30, ha = 'right', va = 'top')\n\n", y_title);
 
     fprintf (file,  "plt.grid (color     = \'black\',\n"                                      
                     "          linewidth = 0.45,\n"    
@@ -83,7 +83,7 @@ int Print_Graph (const struct Graph *graph)
                     "          linewidth = 0.25,\n"
                     "          linestyle = \'dashed\')\n\n"
 
-                    "plt.legend (loc = \'best\')\n");
+                    "plt.legend (loc = \'best\', fontsize = 16)\n");
                    
     fprintf (file, "plt.savefig (\'%s\')\n", img_name);
 
