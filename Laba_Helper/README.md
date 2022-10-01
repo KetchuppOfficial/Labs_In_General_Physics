@@ -6,10 +6,17 @@ git clone git@github.com:KetchuppOfficial/Labs_In_General_Physics.git
 cd ./Labs_In_General_Physics/Laba_Helper
 ```
 
+## Requirements
+
+Make sure you have matplotlib installed. If you don't, install it by command
+```bash
+sudo apt-get install python3-matplotlib
+```
+
 ## How to use
 
 1) Build & Run
-```
+```bash
 cmake -B build
 cd build
 cmake --build .
