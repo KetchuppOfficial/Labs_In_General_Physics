@@ -49,7 +49,7 @@ struct Chi_Sq Linear_Chi_Square (const double *x_data, const double *x_err,
         der_k_by_y[dot_i] = (A * x_data[dot_i] - B) / (err_sq * ac_min_b_sq);
     }
 
-    struct Chi_Sq result = {};
+    struct Chi_Sq result = {0};
 
     result.b = c_d0_min_b_d1 / ac_min_b_sq;
     result.k = a_d1_min_b_d0 / ac_min_b_sq;

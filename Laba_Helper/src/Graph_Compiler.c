@@ -9,6 +9,9 @@
 #include "Graph.h"
 #include "Tools.h"
 
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
 // ======================== GRAPH "CLASS" AND ITS METHODS ======================== //
 
 struct Graph
@@ -308,7 +311,10 @@ int Graph_Compiler (struct Graph *graph)
 
 // ========================== PREPROCESSOR ========================== //
 
-static void Show_Error (const struct Buffer buffer, const size_t err_symb_i, const char *err_descr);
+static size_t count_lines         (const struct Buffer *buffer, const size_t line_beginning);
+static size_t line_with_error_len (const struct Buffer *buffer, const size_t line_beginning);
+static size_t find_line_beginning (const struct Buffer *buffer, const size_t err_symb_i);
+static void   Show_Error          (const struct Buffer buffer,  const size_t err_symb_i, const char *err_descr);
 
 static int D_Preprocessor (struct Buffer *buffer)
 {
@@ -344,33 +350,62 @@ static void Show_Error (const struct Buffer buffer, const size_t err_symb_i, con
 {
     assert (buffer.str);
     assert (err_descr);
-    
-    printf ("************ ERROR REPORT ************\n");
 
-    size_t symb_i = err_symb_i;
-    while (symb_i > 0 && buffer.str[symb_i] != '\n')
-        symb_i--;
-    symb_i++;
+    printf ("\n************ ERROR REPORT ************\n");
+
+    size_t line_beginning = find_line_beginning (&buffer, err_symb_i);
+    size_t to_print       = line_with_error_len (&buffer, line_beginning);
+
+    printf ("LINE %zd:\n", count_lines (&buffer, line_beginning));
     
-    int n_lines = 1;
-    for (size_t i = 0; i < symb_i; i++)
+    printf ("%.*s\n", (int)to_print, buffer.str + line_beginning);
+
+    for (size_t symb_i = 0; symb_i < err_symb_i - line_beginning; symb_i++)
+        putchar (' ');
+
+    printf ("^~~~~~~~~~ %s\n\n"
+            "**************************************\n",  err_descr);
+}
+
+static size_t find_line_beginning (const struct Buffer *buffer, const size_t err_symb_i)
+{
+    assert (buffer);
+    assert (buffer->str);
+    
+    size_t line_beginning = err_symb_i;
+    while (line_beginning > 0 && buffer->str[line_beginning] != '\n')
+        line_beginning--;
+
+    if (line_beginning != 0)
+        line_beginning++;
+
+    return line_beginning;
+}
+
+static size_t line_with_error_len (const struct Buffer *buffer, const size_t line_beginning)
+{
+    assert (buffer);
+    assert (buffer->str);
+    
+    size_t till_eof = buffer->n_symbs - line_beginning;
+    size_t till_eol = (size_t)(strchr (buffer->str + line_beginning, '\n') -
+                               (buffer->str + line_beginning));
+    size_t to_print = MIN (till_eol, till_eof);
+
+    return to_print;
+}
+
+static size_t count_lines (const struct Buffer *buffer, const size_t line_beginning)
+{
+    size_t n_lines = 1;
+
+    for (size_t i = 0; i < line_beginning; i++)
     {
-        if (buffer.str[i] == '\n')
+        if (buffer->str[i] == '\n')
             n_lines++;
     }
 
-    printf ("LINE %d:\n", n_lines);
-    
-    for (size_t i = 0; symb_i + i < buffer.n_symbs && buffer.str[symb_i + i] != '\n'; i++)
-        printf ("%c", buffer.str[symb_i + i]);
-    printf ("\n");
-    
-    for (size_t i = symb_i; i < err_symb_i; i++)
-        printf (" ");
-
-    printf ("^~~~~~~~~~ %s\n", err_descr);
-
-    printf ("**************************************\n");
+    return n_lines;
 }
 
 // ================================================================== //
@@ -639,7 +674,7 @@ static int D_Parser (const struct D_Token *token_arr, const int n_tokens,
     assert (buffer.str);
     assert (graph);
     
-    struct Values values = {};
+    struct Values values = {0};
     
     for (int token_i = 0; token_i < n_tokens; token_i++)
     {       
@@ -701,7 +736,18 @@ static int D_Parser (const struct D_Token *token_arr, const int n_tokens,
                 break;
             
             case NO_LINE:
+                for (int i = 0; i < n_tokens; i++)
+                {
+                    if (token_arr[i].name == LINE_COLOUR)
+                    {
+                        Show_Error (buffer, token_arr[token_i].buff_pos, 
+                                    "Labels \"No_Line\" and \"Line_Colour\" cannot be in the same description file");
+                        return error;
+                    }
+                }
+
                 graph->line_type = DOTS;
+
                 if (One_Label_Check (token_arr, token_i, buffer) == error)
                 {
                     #ifdef LABA_HELPER_DEBUG
@@ -890,7 +936,7 @@ static int Handle_FP_Num (struct Graph *graph, const struct D_Token *token_arr, 
                         break;
                     default:
                         Show_Error (buffer, token_arr[i].buff_pos, 
-                                    "This token cannot have floating point number as argument");
+                                    "This label cannot have floating point number as argument");
                 }
 
                 break;
@@ -898,13 +944,14 @@ static int Handle_FP_Num (struct Graph *graph, const struct D_Token *token_arr, 
                     
             default:
                 Show_Error (buffer, token_arr[token_i].buff_pos, 
-                            "Previous token should be \"X_Data\" or \"Y_Data\" or a floating point num");
+                            "Previous structural unit should be one of labels \"X_Data\", \"X_Error\","
+                            " \"Y_Data\" or \"Y_Error\", or should be a number");
                 return error;
         }
     }
     else
     {
-        Show_Error (buffer, token_arr[0].buff_pos, "First token cannot be a number");
+        Show_Error (buffer, token_arr[0].buff_pos, "First structural unit cannot be a number");
         return error;
     }
 
