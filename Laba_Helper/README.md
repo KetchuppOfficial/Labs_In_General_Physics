@@ -15,19 +15,30 @@ sudo apt-get install python3-matplotlib
 
 ## How to use
 
-1) Build & Run
+### 1) Build & Run
 ```bash
 cmake -B build
 cd build
 cmake --build .
+```
+
+### 2) Installation
+
+An executable file will be located in build/ directory after step 1. It you want to place the program somewhere else, run command:
+```bash
+cmake --install . --prefix=relative/path/to/target/directory
+```
+
+### 3) Run the program
+```bash
 ./Laba_Helper
 ```
 
-2) You will see such menu:
+### 3) You will see such menu:
 
 ![picture_1](/Laba_Helper/pictures/picture_1.png)
 
-3) Follow the instructions and you will recieve your graph:
+### 4) Follow the instructions and you will recieve your graph:
 
 ![picture_2](/Laba_Helper/pictures/picture_2.png)
 
