@@ -8,7 +8,7 @@
 struct Buffer Open_File (void)
 {
     bool error_flag = true;
-    struct Buffer buffer = {};
+    struct Buffer buffer = {0};
     
     while (error_flag)
     {
@@ -89,7 +89,7 @@ struct Buffer File_To_Buffer (const char *file_name)
 {
     assert (file_name);
     
-    struct Buffer buffer = {};
+    struct Buffer buffer = {0};
     
     int is_dir = Is_Directory (file_name);
     if (is_dir == error)
@@ -161,7 +161,7 @@ static char *Make_Buffer (FILE *file, const size_t n_symbs)
     {
         if (ferror (file))
         {
-            printf ("ferror() detected error in last reading from stream %p\n", file);
+            printf ("ferror() detected error in last reading from stream %p\n", (void *)file);
             free (buffer);
             return NULL;
         }
@@ -256,7 +256,7 @@ void *Recalloc_ (void *ptr, size_t old_size, size_t new_size)
     if (ret == NULL)
         printf ("Heap exhausted\n");
     else
-        memset (ret + old_size, 0, new_size - old_size);
+        memset ((char *)ret + old_size, 0, new_size - old_size);
     
     return ret;
 }
