@@ -26,7 +26,7 @@ cmake --build .
 
 An executable file will be located in build/ directory after step 1. It you want to place the program somewhere else, run command:
 ```bash
-cmake --install . --prefix=relative/path/to/target/directory
+cmake --install . --prefix relative/path/to/target/directory
 ```
 
 ### 3) Run the program
